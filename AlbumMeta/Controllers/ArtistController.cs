@@ -8,23 +8,30 @@ namespace AlbumMeta.Controllers
     [Route("api/artist")]
     public class ArtistController : Controller
     {
-        private readonly ArtistContext _context;
+        private readonly ArtistContext _artistContext;
 
-        public ArtistController(ArtistContext context)
+        public ArtistController(ArtistContext artistContext)
         {
-            _context = context;            
+            _artistContext = artistContext;            
+        }
+                
+        [HttpGet("search/{name}", Name = "SearchArtist")]
+        public IEnumerable<Artist> SearchArtist(string name)
+        {
+            var artists = _artistContext.Artists.Where(artist => artist.Name.ToLower().Contains(name.ToLower()));
+            return artists.ToList();
         }
 
         [HttpGet]
         public IEnumerable<Artist> GetAll()
         {
-            return _context.Artists.ToList();
+            return _artistContext.Artists.ToList();
         }
 
         [HttpGet("{id}", Name = "GetArtist")]
         public IActionResult GetById(long id)
         {
-            var item = _context.Artists.FirstOrDefault(t => t.Id == id);
+            var item = _artistContext.Artists.FirstOrDefault(t => t.Id == id);
             if (item == null)
             {
                 return NotFound();
@@ -40,8 +47,8 @@ namespace AlbumMeta.Controllers
                 return BadRequest();
             }
 
-            _context.Artists.Add(item);
-            _context.SaveChanges();
+            _artistContext.Artists.Add(item);
+            _artistContext.SaveChanges();
 
             return CreatedAtRoute("GetArtist", new { id = item.Id }, item);
         }
@@ -54,7 +61,7 @@ namespace AlbumMeta.Controllers
                 return BadRequest();
             }
 
-            var artist = _context.Artists.FirstOrDefault(t => t.Id == id);
+            var artist = _artistContext.Artists.FirstOrDefault(t => t.Id == id);
             if (artist == null)
             {
                 return NotFound();
@@ -62,22 +69,22 @@ namespace AlbumMeta.Controllers
             
             artist.Name = item.Name;
 
-            _context.Artists.Update(artist);
-            _context.SaveChanges();
+            _artistContext.Artists.Update(artist);
+            _artistContext.SaveChanges();
             return new NoContentResult();
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(long id)
         {
-            var artist = _context.Artists.FirstOrDefault(t => t.Id == id);
+            var artist = _artistContext.Artists.FirstOrDefault(t => t.Id == id);
             if (artist == null)
             {
                 return NotFound();
             }
 
-            _context.Artists.Remove(artist);
-            _context.SaveChanges();
+            _artistContext.Artists.Remove(artist);
+            _artistContext.SaveChanges();
             return new NoContentResult();
         }
     }

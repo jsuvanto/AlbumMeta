@@ -8,23 +8,31 @@ namespace AlbumMeta.Controllers
     [Route("api/album")]
     public class AlbumController : Controller
     {
-        private readonly AlbumContext _context;
+        private readonly AlbumContext _albumContext;        
 
-        public AlbumController(AlbumContext context)
+        public AlbumController(AlbumContext albumContext)
         {
-            _context = context;
+            _albumContext = albumContext;
+        }
+
+        [HttpGet("search/{name}", Name = "SearchAlbum")]
+        public IEnumerable<Album> SearchAlbum(string name)
+        {
+            var artists = _albumContext.Albums.Where(album => album.Name.ToLower().Contains(name.ToLower()));
+
+            return artists.ToList();
         }
 
         [HttpGet]
         public IEnumerable<Album> GetAll()
         {
-            return _context.Albums.ToList();
+            return _albumContext.Albums.ToList();
         }
 
         [HttpGet("{id}", Name = "GetAlbum")]
         public IActionResult GetById(long id)
         {
-            var item = _context.Albums.FirstOrDefault(t => t.Id == id);
+            var item = _albumContext.Albums.FirstOrDefault(t => t.Id == id);
             if (item == null)
             {
                 return NotFound();
@@ -34,16 +42,17 @@ namespace AlbumMeta.Controllers
 
         [HttpPost]
         public IActionResult Create([FromBody] Album item)
-        {
+        {            
+
             if (item == null)
             {
                 return BadRequest();
             }
 
-            _context.Albums.Add(item);
-            _context.SaveChanges();
+            _albumContext.Albums.Add(item);
+            _albumContext.SaveChanges();            
 
-            return CreatedAtRoute("Album", new { id = item.Id, name = item.Name, artistId = item.ArtistId, releaseYear = item.ReleaseYear }, item);
+            return CreatedAtRoute("GetAlbum", new { id = item.Id, name = item.Name, artistId = item.ArtistId, releaseYear = item.ReleaseYear }, item);
         }
 
         [HttpPut("{id}")]
@@ -54,7 +63,7 @@ namespace AlbumMeta.Controllers
                 return BadRequest();
             }
 
-            var album = _context.Albums.FirstOrDefault(t => t.Id == id);
+            var album = _albumContext.Albums.FirstOrDefault(t => t.Id == id);
             if (album == null)
             {
                 return NotFound();
@@ -64,23 +73,25 @@ namespace AlbumMeta.Controllers
             album.ReleaseYear = item.ReleaseYear;
             album.ArtistId = item.ArtistId;
 
-            _context.Albums.Update(album);
-            _context.SaveChanges();
+            _albumContext.Albums.Update(album);
+            _albumContext.SaveChanges();
             return new NoContentResult();
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(long id)
         {
-            var album = _context.Albums.FirstOrDefault(t => t.Id == id);
+            var album = _albumContext.Albums.FirstOrDefault(t => t.Id == id);
             if (album == null)
             {
                 return NotFound();
             }
 
-            _context.Albums.Remove(album);
-            _context.SaveChanges();
+            _albumContext.Albums.Remove(album);
+            _albumContext.SaveChanges();
             return new NoContentResult();
         }
+
+        
     }
 }
